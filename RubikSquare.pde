@@ -1,5 +1,3 @@
-int RUBIK_ROWS = 4, RUBIK_COLS = 4;
-float RUBIK_FACE_SIZE = 15.0;
 int PIVOT_DURATION = 20;
 float EXIT_DURATION = 200;
 
@@ -8,37 +6,41 @@ color RUBIK_BACK_COLOR = #ffffff;
 
 class RubikSquare {
   PivotMove curmove = null;
-  boolean faces[][] = new boolean[RUBIK_ROWS][RUBIK_COLS];
+  boolean faces[][];
   ArrayList<PivotMove> pending_moves = new ArrayList<PivotMove>();
   
-  int offx = RUBIK_ROWS/2, offy = RUBIK_COLS/2;
+  int rows, cols;
+  int offx, offy;
   float scale_factor = 1.1;
   
   int exit_frames = 0;
   
-  RubikSquare() {
-    for (int i = 0; i < RUBIK_ROWS; i++) {
-      for (int j = 0; j < RUBIK_COLS; j++) {
+  RubikSquare(int rows, int cols) {
+    this.rows = rows;
+    this.cols = cols;
+
+    faces = new boolean[rows][cols];
+    offx = rows/2;
+    offy = cols/2;
+
+    for (int i = 0; i < rows; i++) {
+      for (int j = 0; j < cols; j++) {
         faces[i][j] = false;
       }
     }
-  }
-  
-  void prescale() {
-    scale(scale_val);
   }
   
   void draw() {
     pushMatrix();
 
     stroke(100, 10, 10);
-    strokeWeight(5000.0);
+    strokeWeight(20.0);
     fill(255, 25, 0);
     
     // STEP 1. draw non-animating squares
 
-    for (int i = 0; i < RUBIK_ROWS; i++) {
-      for (int j = 0; j < RUBIK_COLS; j++) {
+    for (int i = 0; i < rows; i++) {
+      for (int j = 0; j < cols; j++) {
         // don't render this cell if it's part of a pivoting row or column
         if (curmove != null &&
             ( ( curmove.isRow && i == curmove.id) ||
@@ -89,7 +91,7 @@ class RubikSquare {
         rotateX(angle);
         // draw the selected column flipping over
         int j = curmove.id;
-        for (int i = 0; i < RUBIK_ROWS; i++) {
+        for (int i = 0; i < rows; i++) {
           pushMatrix();
           tileTranslate(i, j);
           // draw the cube at i, j
@@ -101,7 +103,7 @@ class RubikSquare {
         rotateY(angle);
         // draw the selected row flipping over
         int i = curmove.id;
-        for (int j = 0; j < RUBIK_COLS; j++) {
+        for (int j = 0; j < cols; j++) {
           pushMatrix();
           tileTranslate(i, j);
           // draw the cube at i, j
@@ -122,21 +124,26 @@ class RubikSquare {
       if (!curmove.isRow) {
         // strange, but rotating a row means reversing each element in the columns of that row
         // ergo, we iterate over rows when we're rotating a column
-        boolean items[] = new boolean[RUBIK_ROWS];
-        for (int i = 0; i < RUBIK_ROWS; i++) { items[i] = !faces[i][curmove.id]; }
+        boolean items[] = new boolean[rows];
+        for (int i = 0; i < rows; i++) { items[i] = !faces[i][curmove.id]; }
         items = reverse(items);
-        for (int i = 0; i < RUBIK_ROWS; i++) { faces[i][curmove.id] = items[i]; }
+        for (int i = 0; i < rows; i++) { faces[i][curmove.id] = items[i]; }
       }
       else {
-        boolean items[] = new boolean[RUBIK_COLS];
-        for (int i = 0; i < RUBIK_COLS; i++) { items[i] = !faces[curmove.id][i]; }
+        boolean items[] = new boolean[cols];
+        for (int i = 0; i < cols; i++) { items[i] = !faces[curmove.id][i]; }
         items = reverse(items);
-        for (int i = 0; i < RUBIK_COLS; i++) { faces[curmove.id][i] = items[i]; }
+        for (int i = 0; i < cols; i++) { faces[curmove.id][i] = items[i]; }
       }
     
       // check for victory
-      if (!curmove.auto)
-        checkVictory();
+      if (!curmove.auto) {
+        if (checkVictory()) {
+          // victory!
+          level += 1;
+          exit_frames = EXIT_DURATION; 
+        }
+      }
       
       // STEP 2b: and stop the pivot
       curmove = null;
@@ -145,9 +152,12 @@ class RubikSquare {
   
   void requestPivot(PivotMove p) {
     // don't allow moves if we're in an exit sequence
-    
     if (exit_frames > 0)
       return;
+   
+   // ignore moves that fall outside the square's space
+   if (p.id < 0 || (p.isRow && p.id >= rows) || (!p.isRow && p.id >= cols))
+     return;
       
     // push the requested move onto the stack
     pending_moves.add(p); 
@@ -158,8 +168,8 @@ class RubikSquare {
     
     if (exit_frames > 0) {
       float exit_frac = 1.0 - pow(exit_frames,1.1)/(float)EXIT_DURATION;
-      rotateX(exit_frac*0.2);
-      rotateY(exit_frac*0.3);
+      rotateX(exit_frac*1.2);
+      rotateY(exit_frac*2.8);
       rotateZ(exit_frac*3.2);
       
       if (exit_frames == EXIT_DURATION/2)
@@ -187,19 +197,13 @@ class RubikSquare {
   boolean checkVictory() {
     // and check for victory
     int reds = 0, whites = 0;
-    for (int i = 0; i < RUBIK_ROWS; i++) {
-      for (int j = 0; j < RUBIK_COLS; j++) {
+    for (int i = 0; i < rows; i++) {
+      for (int j = 0; j < cols; j++) {
         if (faces[i][j]) { reds += 1; } else { whites += 1; }
       }
     }
     
-    if (reds == RUBIK_ROWS*RUBIK_COLS || whites == RUBIK_ROWS*RUBIK_COLS) {
-      // victory!
-      exit_frames = EXIT_DURATION;
-      return true;
-    }
-    
-    return false;
+    return (reds == rows*cols || whites == rows*cols);
   }
 }
 
@@ -210,8 +214,8 @@ class PivotMove {
   int frames;
   boolean auto;
   
- PivotMove(int id, boolean isRow, boolean clockwise, boolean auto) {
-   this.id = constrain(id, 0, (isRow)?RUBIK_ROWS:RUBIK_COLS);
+ PivotMove(int id, boolean isRow, boolean clockwise, boolean auto) {   
+   this.id = id;
    this.isRow = isRow;
    this.clockwise = clockwise;
    this.frames = PIVOT_DURATION;

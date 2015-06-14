@@ -33,8 +33,7 @@ class RubikSquare {
   void draw() {
     pushMatrix();
 
-    stroke(100, 10, 10);
-    strokeWeight(20.0);
+    noStroke();
     fill(255, 25, 0);
     
     // STEP 1. draw non-animating squares
@@ -71,6 +70,7 @@ class RubikSquare {
     if (exit_frames > 0) {
       float exit_frac = 1.0 - exit_frames/(float)EXIT_DURATION;
       scale_factor = 1.1 + exit_frac*3.0;
+      
       exit_frames -= 1;
     }
     
@@ -167,7 +167,7 @@ class RubikSquare {
     pushMatrix();
     
     if (exit_frames > 0) {
-      float exit_frac = 1.0 - pow(exit_frames,1.1)/(float)EXIT_DURATION;
+      float exit_frac = 1.0 - exit_frames/(float)EXIT_DURATION;
       rotateX(exit_frac*1.2);
       rotateY(exit_frac*2.8);
       rotateZ(exit_frac*3.2);
@@ -175,12 +175,12 @@ class RubikSquare {
       if (exit_frames == EXIT_DURATION/2)
         reset_frames = RESET_DURATION;
     }
-
+    
     // top square
     if (!flipped) { fill(RUBIK_FRONT_COLOR); }
     else { fill(RUBIK_BACK_COLOR); }
     rect(0, 0, 1, 1);
-    translate(0, 0, -0.01);
+    translate(0, 0, -0.001);
       
     // bottom square
     if (flipped) { fill(RUBIK_FRONT_COLOR); }

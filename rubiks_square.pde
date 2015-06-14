@@ -19,10 +19,9 @@ void setup() {
   smooth();
   rectMode(CENTER);
   
-  square = new RubikSquare(level+1, level+1);
-  scale_val = 250/min(square.rows, square.cols);
-  
-  randomize(level*2);
+  square = new RubikSquare((int)(level/3)+3, (int)(level/3)+3);
+  scale_val = 250/max(square.rows, square.cols);
+  randomize(level*1.5);
 }
 
 void keyReleased() {
@@ -57,9 +56,9 @@ void mouseOut() {
 
 void mouseReleased() {
   // project starting pos into scene to determine square
-  int tmx = (int)(mousePos.x - width/2)/scale_val, tmy = (int)(mousePos.y - height/2)/scale_val;
-  int ttx = (int)floor(tmx  + floor(square.rows/2));
-  int tty = (int)floor(tmy + floor(square.cols/2));
+  int tmx = (int)(mousePos.x - width/2)/scale_val + square.rows/2, tmy = (int)(mousePos.y - height/2)/scale_val + square.cols/2;
+  int ttx = (int)floor(tmx);
+  int tty = (int)floor(tmy);
 
   // use difference from current pos to determine row/col and rotation direction
   PVector curPos = new PVector(mouseX, mouseY);
@@ -76,14 +75,14 @@ void mouseReleased() {
 
 void draw() {
   background(0);
-  
+
   // draw level indicator
   fill(255, 50);
   noStroke();
   for (int i = 0; i < level; i++) {
-    rect(5 + 6*i, height-5, 5, 5); 
+    rect(8 + 8*i, height-8, 5, 5); 
   }
-
+  
   // debug axes
   if (DRAW_AXES) {
     pushStyle();
@@ -104,7 +103,7 @@ void draw() {
   if (dragging) {
     int rad = dist(mouseX, mouseY, mousePos.x, mousePos.y)*0.3;
     noStroke();
-    fill(12, 100, 200, 0.25);
+    fill(12, 50, 100, 0.25);
     ellipse(mousePos.x, mousePos.y, rad, rad);
     fill(255, 0.25);
     ellipse(mousePos.x, mousePos.y, rad*2, rad*2);
@@ -137,12 +136,13 @@ void draw() {
     
     if (reset_frames == RESET_DURATION/2) {
       // swap out the old square with a new one once it's offscreen
-     square = new RubikSquare(level+1, level+1);
+     square = new RubikSquare((int)(level/3)+3, (int)(level/3)+3);
      scale_val = 250/min(square.rows, square.cols);
+     // randomize(level*1.5);
     }
     else if (reset_frames == 1) {
       // at our last frame, apply a series of random moves to the board to reset it
-      randomize(level*2);
+      randomize(level*1.5);
     }
   
     reset_frames -= 1;

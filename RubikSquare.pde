@@ -1,4 +1,3 @@
-int PIVOT_DURATION = 20;
 float EXIT_DURATION = 200;
 
 color RUBIK_FRONT_COLOR = #ff0000;
@@ -47,11 +46,7 @@ class RubikSquare {
               continue;
         }
 
-        pushMatrix();
-        tileTranslate(i, j);
-        // draw the cube at i, j
-        drawFace(faces[i][j]);
-        popMatrix();
+        drawFace(i, j);
       }
     }
     
@@ -77,13 +72,13 @@ class RubikSquare {
     popMatrix();
   }
   
-  void drawPivoting(boolean auto) {
+  void drawPivoting() {
     if (curmove == null)
       return;
       
     if (curmove.frames >= 0) {
       // STEP 1a: draw the row/col that's pivoting
-      float angle = (1.0 - (curmove.frames/(float)PIVOT_DURATION)) * PI * (curmove.clockwise?1.0:-1.0);
+      float angle = (1.0 - (curmove.frames/(float)curmove.duration)) * PI * (curmove.clockwise?1.0:-1.0);
       
       pushMatrix();
       
@@ -93,9 +88,7 @@ class RubikSquare {
         int j = curmove.id;
         for (int i = 0; i < rows; i++) {
           pushMatrix();
-          tileTranslate(i, j);
-          // draw the cube at i, j
-          drawFace(faces[i][j]);
+          drawFace(i, j);
           popMatrix();
         }
       }
@@ -105,9 +98,7 @@ class RubikSquare {
         int i = curmove.id;
         for (int j = 0; j < cols; j++) {
           pushMatrix();
-          tileTranslate(i, j);
-          // draw the cube at i, j
-          drawFace(faces[i][j]);
+          drawFace(i, j);
           popMatrix();
         }
         
@@ -163,8 +154,13 @@ class RubikSquare {
     pending_moves.add(p); 
   }
   
-  void drawFace(boolean flipped) {
+  void drawFace(int i, int j) {
+    boolean flipped = faces[i][j];
+    
     pushMatrix();
+    
+    // move to the face's position
+    translate((j-offx + 0.5)*scale_factor, (i-offy + 0.5)*scale_factor); 
     
     if (exit_frames > 0) {
       float exit_frac = 1.0 - exit_frames/(float)EXIT_DURATION;
@@ -190,10 +186,6 @@ class RubikSquare {
     popMatrix();
   }
   
-  void tileTranslate(int i, int j) {
-    translate((j-offx + 0.5)*scale_factor, (i-offy + 0.5)*scale_factor); 
-  }
-  
   boolean checkVictory() {
     // and check for victory
     int reds = 0, whites = 0;
@@ -205,6 +197,23 @@ class RubikSquare {
     
     return (reds == rows*cols || whites == rows*cols);
   }
+  
+  // randomizes the board
+  void randomize(int pivots) {
+    // int walk = (int)random(0, min(square.rows, square.cols)-1);
+    boolean isRow;
+    for (int i = 0; i < pivots; i++) {
+      isRow = !isRow;
+      
+      // int pos = (isRow)?(int)random(0, square.rows):(int)random(0, square.cols);
+      int pos = (isRow)?(int)random(0, rows-1):(int)random(0, cols-1);
+      
+      // increase the speed of pivots until it's instantaneous (except for the last four moves)
+      int duration = (level <= 6 || pivots-i <= 4)?15 - (level*0.5):0;
+      
+      requestPivot(new PivotMove(pos, isRow, random(100) < 30, true, duration));
+    }
+  }
 }
 
 class PivotMove {
@@ -213,12 +222,14 @@ class PivotMove {
   boolean clockwise;
   int frames;
   boolean auto;
+  int duration;
   
- PivotMove(int id, boolean isRow, boolean clockwise, boolean auto) {   
+ PivotMove(int id, boolean isRow, boolean clockwise, boolean auto, int duration) {   
    this.id = id;
    this.isRow = isRow;
    this.clockwise = clockwise;
-   this.frames = PIVOT_DURATION;
+   this.frames = duration;
+   this.duration = duration;
    this.auto = auto;
  } 
 }

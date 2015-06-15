@@ -1,9 +1,18 @@
 /**
 <p>
-Click and drag to rotate a row or column. Dragging horizontally flips the row, vertically the column. Make the board uniform to advance.
+Click and drag to rotate a row or column. Dragging horizontally flips the row, vertically the column. (Not dragging will rotate the clicked row.)
 </p>
 
-<p>Pressing <b>'r'</b> resets the board at the cost of one level.</p>
+<p>Make the board uniform to advance.</p>
+
+<p><b>Extended Controls:</b>
+<ul>
+  <li><b>SHIFT:</b> rotate the clicked cell's column</li>
+  <li><b>r:</b> reset the board at the cost of one level.</li>
+</ul>
+</p>
+
+<p style="font-size: 10px;"><b>NOTE:</b> on occasion the board will be created solved; just un-solve and re-solve it and it'll continue. Also note that what constitutes a good versus bad series of pivots to generate a hard board is still an open question.<p>
 */
 
 RubikSquare square;
@@ -21,12 +30,27 @@ void setup() {
   
   square = new RubikSquare((int)(level/3)+3, (int)(level/3)+3);
   scale_val = 250/max(square.rows, square.cols);
-  randomize(level*1.5);
+  square.randomize(level*1.5);
+}
+
+// ====================================
+// === INPUT HANDLING
+// ====================================
+
+PVector mousePos = new PVector();
+boolean dragging = false;
+boolean mod_pressed = false;
+
+void keyPressed() {
+  if (key == CODED && keyCode == SHIFT)
+    mod_pressed = true;
 }
 
 void keyReleased() {
-  if (reset_frames > 0 || square.exit_frames > 0
-  )
+  if (key == CODED && keyCode == SHIFT)
+    mod_pressed = false;
+    
+  if (reset_frames > 0 || square.exit_frames > 0)
     return;
 
   if (key == 'r') {
@@ -40,9 +64,6 @@ void keyReleased() {
     square.exit_frames = EXIT_DURATION; 
   }
 }
-
-PVector mousePos = new PVector();
-boolean dragging = false;
 
 void mousePressed() {
   mousePos.set(mouseX, mouseY);
@@ -63,25 +84,38 @@ void mouseReleased() {
   // use difference from current pos to determine row/col and rotation direction
   PVector curPos = new PVector(mouseX, mouseY);
   PVector displace = PVector.sub(mousePos, curPos);
+  float displace_mag = displace.mag();
   
   // basically just detects the direction of the drag to figure out if it's a row/col and in which direction to do the rotation
   float heading = (displace.heading() + PI)/PI;
-  boolean isRow = (heading > 7.0/4.0 || heading < 1.0/4.0) || (heading > 3.0/4.0 && heading < 5.0/4.0);
-  boolean clockwise = (isRow && (heading > 7.0/4.0 || heading < 1.0/4.0)) || (!isRow && (heading > 1.0/4.0 && heading < 3.0/4.0));
+  boolean isRow = (displace_mag <= 2) || (heading > 7.0/4.0 || heading < 1.0/4.0) || (heading > 3.0/4.0 && heading < 5.0/4.0);
+  boolean clockwise = (displace_mag <= 2) || (isRow && (heading > 7.0/4.0 || heading < 1.0/4.0)) || (!isRow && (heading > 1.0/4.0 && heading < 3.0/4.0));
+  
+  // quick hack to allow for clicks w/the mod key pressed to always rotate the col
+  if (mod_pressed) {
+    isRow = false;
+    clockwise = false;
+  }
 
-  square.requestPivot(new PivotMove((isRow)?tty:ttx, isRow, clockwise, false));
+  square.requestPivot(new PivotMove((isRow)?tty:ttx, isRow, clockwise, false, 20));
   dragging = false;
 }
+
+// ====================================
+// === MAIN LOOP
+// ====================================
 
 void draw() {
   background(0);
 
   // draw level indicator
-  fill(255, 50);
+  colorMode(HSB);
   noStroke();
   for (int i = 0; i < level; i++) {
+    fill(i*47 % 255, 100, 255);
     rect(8 + 8*i, height-8, 5, 5); 
   }
+  colorMode(RGB);
   
   // debug axes
   if (DRAW_AXES) {
@@ -138,11 +172,11 @@ void draw() {
       // swap out the old square with a new one once it's offscreen
      square = new RubikSquare((int)(level/3)+3, (int)(level/3)+3);
      scale_val = 250/min(square.rows, square.cols);
-     // randomize(level*1.5);
+     // square.randomize(level*1.5);
     }
     else if (reset_frames == 1) {
       // at our last frame, apply a series of random moves to the board to reset it
-      randomize(level*1.5);
+      square.randomize(level*1.5);
     }
   
     reset_frames -= 1;
@@ -154,16 +188,3 @@ void draw() {
   popMatrix();
 }
 
-// randomizes the board
-void randomize(int pivots) {
-  // int walk = (int)random(0, min(square.rows, square.cols)-1);
-  boolean isRow;
-  for (int i = 0; i < pivots; i++) {
-    isRow = !isRow;
-    
-    // int pos = (isRow)?(int)random(0, square.rows):(int)random(0, square.cols);
-    int pos = (isRow)?(int)random(0, square.rows-1):(int)random(0, square.cols-1);
-    
-    square.requestPivot(new PivotMove(pos, isRow, random(100) < 30, true));
-  }
-}

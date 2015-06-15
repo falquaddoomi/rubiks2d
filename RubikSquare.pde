@@ -6,6 +6,7 @@ color RUBIK_BACK_COLOR = #ffffff;
 class RubikSquare {
   PivotMove curmove = null;
   boolean faces[][];
+  boolean paused = false;
   ArrayList<PivotMove> pending_moves = new ArrayList<PivotMove>();
   
   int rows, cols;
@@ -14,7 +15,7 @@ class RubikSquare {
   
   int exit_frames = 0;
   
-  RubikSquare(int rows, int cols) {
+  RubikSquare(int rows, int cols, int pivots) {
     this.rows = rows;
     this.cols = cols;
 
@@ -27,6 +28,8 @@ class RubikSquare {
         faces[i][j] = false;
       }
     }
+    
+    randomize(pivots);
   }
   
   void draw() {
@@ -72,8 +75,9 @@ class RubikSquare {
     popMatrix();
   }
   
+  // animates the movement prior to a board update, typically by the player
   void drawPivoting() {
-    if (curmove == null)
+    if (curmove == null || paused)
       return;
       
     if (curmove.frames >= 0) {
@@ -111,33 +115,35 @@ class RubikSquare {
     
     if (curmove.frames <= 0) {
       // STEP 2a: flip the faces for the row/col that's selected
-      
-      if (!curmove.isRow) {
-        // strange, but rotating a row means reversing each element in the columns of that row
-        // ergo, we iterate over rows when we're rotating a column
-        boolean items[] = new boolean[rows];
-        for (int i = 0; i < rows; i++) { items[i] = !faces[i][curmove.id]; }
-        items = reverse(items);
-        for (int i = 0; i < rows; i++) { faces[i][curmove.id] = items[i]; }
-      }
-      else {
-        boolean items[] = new boolean[cols];
-        for (int i = 0; i < cols; i++) { items[i] = !faces[curmove.id][i]; }
-        items = reverse(items);
-        for (int i = 0; i < cols; i++) { faces[curmove.id][i] = items[i]; }
-      }
-    
-      // check for victory
-      if (!curmove.auto) {
-        if (checkVictory()) {
-          // victory!
-          level += 1;
-          exit_frames = EXIT_DURATION; 
-        }
-      }
+      performPivot(curmove);
       
       // STEP 2b: and stop the pivot
       curmove = null;
+    }
+  }
+  
+  // performs a board update without any accompanying animation
+  void performPivot(PivotMove curmove) {
+    if (!curmove.isRow) {
+      // strange, but rotating a row means reversing each element in the columns of that row
+      // ergo, we iterate over rows when we're rotating a column
+      boolean items[] = new boolean[rows];
+      for (int i = 0; i < rows; i++) { items[i] = !faces[i][curmove.id]; }
+      items = reverse(items);
+      for (int i = 0; i < rows; i++) { faces[i][curmove.id] = items[i]; }
+    }
+    else {
+      boolean items[] = new boolean[cols];
+      for (int i = 0; i < cols; i++) { items[i] = !faces[curmove.id][i]; }
+      items = reverse(items);
+      for (int i = 0; i < cols; i++) { faces[curmove.id][i] = items[i]; }
+    }
+  
+    // check for victory
+    if (!curmove.auto && checkVictory()) {
+      // victory!
+      level += 1;
+      exit_frames = EXIT_DURATION; 
     }
   }
   
@@ -211,7 +217,10 @@ class RubikSquare {
       // increase the speed of pivots until it's instantaneous (except for the last four moves)
       int duration = (level <= 6 || pivots-i <= 4)?15 - (level*0.5):0;
       
-      requestPivot(new PivotMove(pos, isRow, random(100) < 30, true, duration));
+      if (duration > 0)
+        requestPivot(new PivotMove(pos, isRow, random(100) < 30, true, duration));
+      else
+        performPivot(new PivotMove(pos, isRow, random(100) < 30, true, duration));
     }
   }
 }

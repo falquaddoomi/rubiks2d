@@ -5,7 +5,9 @@ Click and drag to rotate a row or column. Dragging horizontally flips the row, v
 
 <p>Make the board uniform to advance.</p>
 
-<p><b>Extended Controls:</b>
+<p>(Both the grid size and number of initial turns increase as you complete each level. In later levels, all but the last 3 turns will be pre-applied.)</p>
+
+<p><b>Controls:</b>
 <ul>
   <li><b>SHIFT:</b> rotate the clicked cell's column</li>
   <li><b>r:</b> reset the board at the cost of one level.</li>
@@ -28,9 +30,8 @@ void setup() {
   smooth();
   rectMode(CENTER);
   
-  square = new RubikSquare((int)(level/3)+3, (int)(level/3)+3);
+  square = new RubikSquare((int)(level/3)+3, (int)(level/3)+3, level*1.5);
   scale_val = 250/max(square.rows, square.cols);
-  square.randomize(level*1.5);
 }
 
 // ====================================
@@ -170,13 +171,13 @@ void draw() {
     
     if (reset_frames == RESET_DURATION/2) {
       // swap out the old square with a new one once it's offscreen
-     square = new RubikSquare((int)(level/3)+3, (int)(level/3)+3);
+     square = new RubikSquare((int)(level/3)+3, (int)(level/3)+3, level*1.5);
+     square.paused = true;
      scale_val = 250/min(square.rows, square.cols);
-     // square.randomize(level*1.5);
     }
     else if (reset_frames == 1) {
-      // at our last frame, apply a series of random moves to the board to reset it
-      square.randomize(level*1.5);
+      // unfreeze the square to allow it to process its moves
+      square.paused = false;
     }
   
     reset_frames -= 1;

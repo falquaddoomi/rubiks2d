@@ -45,6 +45,10 @@
 			border-right: 1px solid #333; border-bottom: 1px solid #333;
 			background-color: #3d3d3d;
 		}
+		.authorship {
+			color: #ccc;
+			font-size: 9px;
+		}
 		</style>
 		<!--[if lt IE 9]>
 			<script type="text/javascript">alert("Your browser does not support the canvas tag.");</script>
@@ -67,8 +71,9 @@
 	    	</div>
 			<h1>@@sketch@@</h1>
     		<p id="description">@@description@@</p>
-			<p id="sources">Source code: @@source@@</p>
-			<p>
+    		
+    		<p class="authorship">written by <b>falquaddoomi</b>, source code: @@source@@</p>
+			<p class="authorship">
 			Built with <a href="http://processing.org" title="Processing">Processing</a>
 			and <a href="http://processingjs.org" title="Processing.js">Processing.js</a>
 			</p>

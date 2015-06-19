@@ -1,9 +1,10 @@
 <!DOCTYPE html>
 	<head>
 		<meta http-equiv="content-type" content="text/html; charset=utf-8" />
-		<title>@@sketch@@ : Built with Processing and Processing.js</title>
+		<title>Rubik's 2D</title>
 		
 		<meta name="viewport" content="width=device-width, initial-scale=0.75, user-scalable=no">
+		<meta name="mobile-web-app-capable" content="yes">
 		
 		<link rel="icon"  type="image/x-icon" href="data:image/x-icon;base64,AAABAAEAEBAQAAEABAAoAQAAFgAAACgAAAAQAAAAIAAAAAEABAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAADAQAAVzABAEAjBQAaDwYAWjUGAGE6CQBrQQ0ATS8PAFhAJwBUQC8AbFI6AHVXPACBZk4A4NrWAPb19QAAAAAAAMmZmZmZmgAJIwAAAAAAcMIjPjA+PjAKpxIuMDMzMAm0Ii4zMzMACaIiLt3dMAAJtyIuIzPQAAm0Un5yM+IzKLRkfncy4iIotRF+dyLkIiq0QX53F+EiGrQUTkd34iIatEVu7u5iIVrBVVRBRFRVbAtGZGZla2uwAMu7u7u8vADAAwAAgAEAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAIABAADAAwAA" />
 		<meta name="Generator" content="Processing" />
@@ -17,7 +18,7 @@
 		+ - - - - - - - - - - - - - - - - - - - - -->
 		<style type="text/css">
 		body {
-		  background-color: #333; color: #bbb; line-height: normal;
+		  background-color: black; color: #bbb; line-height: normal;
 		  font-family: Lucida Grande, Lucida Sans, Arial, Helvetica Neue, Verdana, Geneva, sans-serif;
 		  font-size: 11px; font-weight: normal; text-decoration: none;
 			  line-height: 1.5em;
@@ -39,16 +40,15 @@
 			margin-bottom: 1.5em; 
 		}
 		#content { 
-			margin: 50px auto 0px auto; padding: 25px 25px 15px 25px;
+			margin: 0px auto 0px auto; padding: 10px;
 			width: @@width@@px; min-width: 300px; overflow: auto;
-			border-left: 1px solid #444; border-top: 1px solid #444; 
-			border-right: 1px solid #333; border-bottom: 1px solid #333;
-			background-color: #3d3d3d;
 		}
 		.authorship {
 			color: #ccc;
 			font-size: 9px;
 		}
+		
+		.console { color: black; }
 		</style>
 		<!--[if lt IE 9]>
 			<script type="text/javascript">alert("Your browser does not support the canvas tag.");</script>

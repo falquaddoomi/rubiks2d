@@ -1,4 +1,4 @@
-float EXIT_DURATION = 200;
+float EXIT_DURATION = 120;
 
 color RUBIK_FRONT_COLOR = #ff0000;
 color RUBIK_BACK_COLOR = #ffffff;
@@ -8,6 +8,7 @@ class RubikSquare {
   boolean faces[][];
   boolean paused = false;
   ArrayList<PivotMove> pending_moves = new ArrayList<PivotMove>();
+  float entropy; // FIXME: updated by checkVictory() for now
   
   int rows, cols;
   int offx, offy;
@@ -33,8 +34,6 @@ class RubikSquare {
   }
   
   void draw() {
-    pushMatrix();
-
     noStroke();
     fill(255, 25, 0);
     
@@ -71,13 +70,11 @@ class RubikSquare {
       
       exit_frames -= 1;
     }
-    
-    popMatrix();
   }
   
   // animates the movement prior to a board update, typically by the player
   void drawPivoting() {
-    if (curmove == null || paused)
+    if (curmove == null)
       return;
       
     if (curmove.frames >= 0) {
@@ -110,7 +107,8 @@ class RubikSquare {
       }
       
       // STEP 1b: and contine the pivot animation next frame
-      curmove.frames -= 1;
+      if (!paused)
+        curmove.frames -= 1;
     }
     
     if (curmove.frames <= 0) {
@@ -166,7 +164,7 @@ class RubikSquare {
     pushMatrix();
     
     // move to the face's position
-    translate((j-offx + 0.5)*scale_factor, (i-offy + 0.5)*scale_factor); 
+    translate((j-offx + 0.5)*scale_factor, (i-offy + 0.5)*scale_factor, 0); 
     
     if (exit_frames > 0) {
       float exit_frac = 1.0 - exit_frames/(float)EXIT_DURATION;

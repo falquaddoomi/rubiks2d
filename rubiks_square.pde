@@ -17,18 +17,24 @@ Click and drag to rotate a row or column. Dragging horizontally flips the row, v
 <p style="font-size: 10px;"><b>NOTE:</b> on occasion the board will be created solved; just un-solve and re-solve it and it'll continue. Also note that what constitutes a good versus bad series of pivots to generate a hard board is still an open question.<p>
 */
 
+/* @pjs font="atari_full.ttf"; */
+
 RubikSquare square;
 
-boolean DRAW_AXES = false;
 int reset_frames = 0;
 int RESET_DURATION = 20;
 float scale_val;
 int level = 1;
 
+PFont atari;
+
 void setup() {
   size(400,400,P3D);
   smooth();
   rectMode(CENTER);
+  // ortho(0, width, 0, height, -10, 10);
+  
+  atari = loadFont("atari_full.ttf");
   
   square = new RubikSquare((int)(level/3)+3, (int)(level/3)+3, level*1.5);
   scale_val = 250/max(square.rows, square.cols);
@@ -118,22 +124,6 @@ void draw() {
   }
   colorMode(RGB);
   
-  // debug axes
-  if (DRAW_AXES) {
-    pushStyle();
-    strokeWeight(3);
-    // x: red
-    stroke(255, 0, 0);
-    line(0, 0, 0, 10, 0, 0);
-    // y: green
-    stroke(0, 255, 0);
-    line(0, 0, 0, 0, 10, 0);
-    stroke(0, 0, 255);
-    // z: blue
-    line(0, 0, 0, 0, 0, 10);
-    popStyle();
-  }
-  
   // display mouse-dragging reticule
   if (dragging) {
     int rad = dist(mouseX, mouseY, mousePos.x, mousePos.y)*0.3;
@@ -148,7 +138,7 @@ void draw() {
   pushMatrix();
 
   // move the coordinate system to the center of the viewport
-  translate(width/2, height/2);
+  translate(width/2, height/2, 0);
   
   // scale up b/c the square is in units of 1.0
   // we do this prior to drawing the square
@@ -160,6 +150,7 @@ void draw() {
   if (reset_frames > 0) {
     float frac = 1.0 - (reset_frames/(float)(RESET_DURATION));
     // scale(-1.0 * (1.0 - frac));
+    
     
     // split the reset duration into two intervals
     // 1) old square exiting from the bottom

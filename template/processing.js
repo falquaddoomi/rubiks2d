@@ -7476,7 +7476,7 @@ module.exports = (function commonFunctions(undef) {
 /**
  * Touch and Mouse event handling
  */
-module.exports = function withTouch(p, curElement, attachEventHandler, document, PConstants, undef) {
+module.exports = function withTouch(p, curElement, attachEventHandler, detachEventHandler, eventHandlers, document, PConstants, undef) {
 
   /**
    * Determine the location of the (mouse) pointer.
@@ -7656,9 +7656,17 @@ module.exports = function withTouch(p, curElement, attachEventHandler, document,
         }
       });
     }
-
+    
     // Refire the touch start event we consumed in this function
-    curElement.dispatchEvent(t);
+    // NOTE: we can't re-fire the old event because chrome/FF recognize it as being processed, and we can't directly clone it
+    // curElement.dispatchEvent(newEvent);
+    
+    // instead, we'll create a new event and copy over the relevant portions using the (unfortunately not standardized) initTouchEvent() method
+    var newEvent = document.createEvent("TouchEvent");
+    // null args below are: t.screenX, t.screenY, t.clientX, t.clientY, 
+    newEvent.initTouchEvent(t.touches, t.targetTouches, t.changedTouches, t.type, t.view, null, null, null, null, t.ctrlKey, t.altKey, t.shiftKey, t.metaKey);
+    // then we'll dispatch that, which seems to work fine
+    curElement.dispatchEvent(newEvent);
   });
 
   /**
@@ -9711,7 +9719,7 @@ module.exports = function setupParser(Processing, options) {
     extend.withCommonFunctions(p);
     extend.withMath(p);
     extend.withProxyFunctions(p, removeFirstArgument);
-    extend.withTouch(p, curElement, attachEventHandler, document, PConstants);
+    extend.withTouch(p, curElement, attachEventHandler, detachEventHandler, eventHandlers, document, PConstants);
 
     // custom functions and properties are added here
     if(aFunctions) {

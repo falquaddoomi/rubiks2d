@@ -7662,11 +7662,18 @@ module.exports = function withTouch(p, curElement, attachEventHandler, detachEve
     // curElement.dispatchEvent(newEvent);
     
     // instead, we'll create a new event and copy over the relevant portions using the (unfortunately not standardized) initTouchEvent() method
-    var newEvent = document.createEvent("TouchEvent");
-    // null args below are: t.screenX, t.screenY, t.clientX, t.clientY, 
-    newEvent.initTouchEvent(t.touches, t.targetTouches, t.changedTouches, t.type, t.view, null, null, null, null, t.ctrlKey, t.altKey, t.shiftKey, t.metaKey);
-    // then we'll dispatch that, which seems to work fine
-    curElement.dispatchEvent(newEvent);
+    var isWebkit = 'WebkitAppearance' in document.documentElement.style;
+    
+    if (isWebkit) {
+		var newEvent = document.createEvent("TouchEvent");
+		// null args below are: t.screenX, t.screenY, t.clientX, t.clientY, 
+		newEvent.initTouchEvent(t.touches, t.targetTouches, t.changedTouches, t.type, t.view, null, null, null, null, t.ctrlKey, t.altKey, t.shiftKey, t.metaKey);
+		// then we'll dispatch that, which seems to work fine
+		curElement.dispatchEvent(newEvent);
+	}
+	else {
+		console.warn("Touch event ignored, as I don't know the arguments for initTouchEvent on non-Webkit browsers.");
+	}
   });
 
   /**

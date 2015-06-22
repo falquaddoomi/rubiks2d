@@ -17,7 +17,7 @@ Click and drag to rotate a row or column. Dragging horizontally flips the row, v
 <p style="font-size: 10px;"><b>NOTE:</b> on occasion the board will be created solved; just un-solve and re-solve it and it'll continue. Also note that what constitutes a good versus bad series of pivots to generate a hard board is still an open question.<p>
 */
 
-/* @pjs font="atari_full.ttf"; */
+/* (NOTE: change ! to @ to enable) !pjs font="atari_full.ttf"; */
 
 RubikSquare square;
 
@@ -34,9 +34,19 @@ void setup() {
   rectMode(CENTER);
   // ortho(0, width, 0, height, -10, 10);
   
-  atari = loadFont("atari_full.ttf");
+  // atari = loadFont("atari_full.ttf");
   
   square = new RubikSquare((int)(level/3)+3, (int)(level/3)+3, level*1.5);
+  if (square.restore()) {
+    // if we had a square, we also had a level, so restore that
+    try {
+      String level_str = loadStrings("rubiks_level");
+      if (level_str != null)
+        level = level_str|0;
+    } catch (Exception e) {
+      console.warn("Unable to load saved level: ", e); 
+    }
+  }
   scale_val = 250/max(square.rows, square.cols);
 }
 
@@ -66,7 +76,7 @@ void keyReleased() {
     reset_frames = RESET_DURATION; 
   }
   else if (key == 'p') {
-    // victory!
+    // victory! :P
     level += 1;
     square.exit_frames = EXIT_DURATION; 
   }
@@ -165,6 +175,8 @@ void draw() {
      square = new RubikSquare((int)(level/3)+3, (int)(level/3)+3, level*1.5);
      square.paused = true;
      scale_val = 250/min(square.rows, square.cols);
+     
+     saveStrings("rubiks_level", new String[]{ level });
     }
     else if (reset_frames == 1) {
       // unfreeze the square to allow it to process its moves
